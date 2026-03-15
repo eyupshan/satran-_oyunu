@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ChessVerse — Satranç Öğren</title>
+  <meta name="description" content="Satranç açılışları, stratejileri, taktikleri ve son oyun tekniklerini interaktif olarak öğrenin">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/chess.css">
+  <style>
+    .learn-page { max-width: 1100px; margin: 0 auto; padding: 1.5rem 2rem; }
+    
+    /* Openings */
+    #openings-list { display: flex; flex-direction: column; gap: 1.5rem; }
+    .learn-card {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: var(--radius-md); padding: 1.5rem;
+      transition: border-color 0.2s;
+    }
+    .learn-card:hover { border-color: rgba(124,77,255,0.5); }
+    .learn-card-top { display: flex; gap: 1.5rem; align-items: flex-start; flex-wrap: wrap; }
+    .learn-card-info { flex: 1; min-width: 280px; }
+    .learn-card-header h3 { font-size: 1.2rem; color: var(--text-primary); }
+    .learn-moves { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0; }
+    .move-code {
+      background: var(--bg-surface); border: 1px solid var(--border);
+      border-radius: 4px; padding: 3px 10px;
+      font-family: monospace; font-size: 0.88rem; color: var(--accent-light);
+    }
+    .learn-desc { color: var(--text-secondary); line-height: 1.7; font-size: 0.92rem; margin: 8px 0; }
+    .learn-tips { list-style: none; display: flex; flex-direction: column; gap: 4px; margin-top: 8px; }
+    .learn-tips li { color: var(--text-secondary); font-size: 0.85rem; padding-left: 1rem; position: relative; }
+    .learn-tips li::before { content: '✦'; position: absolute; left: 0; color: var(--accent); font-size: 0.7rem; top: 2px; }
+
+    /* Strategies */
+    #strategies-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.2rem; }
+    .strategy-card { display: flex; flex-direction: column; gap: 10px; }
+    .strategy-icon { font-size: 2.5rem; }
+    .strategy-title { font-size: 1.1rem; font-weight: 700; color: var(--accent-light); }
+    .strategy-desc { color: var(--text-secondary); line-height: 1.7; font-size: 0.9rem; }
+
+    /* Middlegame */
+    #middlegame-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.2rem; }
+    .tactic-card { }
+    .tactic-header { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+    .tactic-icon { font-size: 1.8rem; }
+    .tactic-header h3 { font-size: 1.1rem; color: var(--gold); }
+    .tactic-example {
+      background: var(--bg-surface); border-radius: var(--radius-sm);
+      padding: 8px 12px; margin-top: 10px; font-size: 0.85rem;
+      color: var(--text-secondary); font-family: monospace;
+    }
+
+    /* Endgame */
+    #endgame-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.2rem; }
+    .endgame-card { }
+    .endgame-header { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+    .endgame-icon { font-size: 1.8rem; }
+    .endgame-header h3 { font-size: 1.1rem; color: var(--success); }
+
+    /* Hero banner */
+    .learn-hero {
+      background: linear-gradient(135deg, rgba(124,77,255,0.15), rgba(91,33,182,0.1));
+      border: 1px solid rgba(124,77,255,0.3);
+      border-radius: var(--radius-lg); padding: 2.5rem 2rem;
+      text-align: center; margin-bottom: 2rem;
+    }
+    .learn-hero h1 { font-family: 'Playfair Display', serif; font-size: 2.2rem; margin-bottom: 0.5rem; }
+    .learn-hero p { color: var(--text-secondary); font-size: 1rem; }
+    .learn-stats { display: flex; gap: 2rem; justify-content: center; margin-top: 1.5rem; flex-wrap: wrap; }
+    .learn-stat { text-align: center; }
+    .learn-stat .num { font-size: 2rem; font-weight: 700; color: var(--accent-light); }
+    .learn-stat .lbl { font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
+
+    @media (max-width: 640px) {
+      .learn-card-top { flex-direction: column; }
+      .mini-board { width: 160px; height: 160px; }
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="nav-logo"><span class="logo-icon">♟</span><span>ChessVerse</span></a>
+  <div class="nav-links">
+    <a href="index.html" class="nav-link"><span class="icon">🎮</span><span>Oyna</span></a>
+    <a href="learn.html" class="nav-link active"><span class="icon">📚</span><span>Öğren</span></a>
+    <a href="challenges.html" class="nav-link"><span class="icon">🏆</span><span>Meydan Okuma</span></a>
+  </div>
+</nav>
+
+<main class="learn-page">
+
+  <!-- Hero -->
+  <div class="learn-hero">
+    <h1>📚 Satranç Öğren</h1>
+    <p>Açılışlardan son oyun tekniklerine — profesyonel satranç bilgisi tek bir yerde</p>
+    <div class="learn-stats">
+      <div class="learn-stat"><div class="num">7</div><div class="lbl">Açılış</div></div>
+      <div class="learn-stat"><div class="num">6</div><div class="lbl">Strateji</div></div>
+      <div class="learn-stat"><div class="num">6</div><div class="lbl">Taktik</div></div>
+      <div class="learn-stat"><div class="num">6</div><div class="lbl">Son Oyun</div></div>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab-btn active" data-tab-group="learn" data-tab="tab-openings">♞ Açılışlar</button>
+    <button class="tab-btn" data-tab-group="learn" data-tab="tab-strategy">🎯 Strateji</button>
+    <button class="tab-btn" data-tab-group="learn" data-tab="tab-middlegame">⚔️ Oyun Ortası</button>
+    <button class="tab-btn" data-tab-group="learn" data-tab="tab-endgame">♔ Son Oyun</button>
+  </div>
+
+  <!-- Tab: Openings -->
+  <div id="tab-openings" class="tab-content active" data-tab-content-group="learn">
+    <h2 class="section-title">Açılış Teorisi</h2>
+    <p class="section-subtitle">En önemli satranç açılışlarını, amaçlarını ve temel fikirlerini keşfedin</p>
+    <div id="openings-list"></div>
+  </div>
+
+  <!-- Tab: Strategy -->
+  <div id="tab-strategy" class="tab-content" data-tab-content-group="learn">
+    <h2 class="section-title">Satranç Stratejisi</h2>
+    <p class="section-subtitle">Uzun vadeli planlar, piyon yapıları ve pozisyonel değerlendirme</p>
+    <div id="strategies-list"></div>
+  </div>
+
+  <!-- Tab: Middlegame -->
+  <div id="tab-middlegame" class="tab-content" data-tab-content-group="learn">
+    <h2 class="section-title">Oyun Ortası Taktikleri</h2>
+    <p class="section-subtitle">Çatal, iğne, çapraz atlatma ve diğer temel taktik motifler</p>
+    <div id="middlegame-list"></div>
+  </div>
+
+  <!-- Tab: Endgame -->
+  <div id="tab-endgame" class="tab-content" data-tab-content-group="learn">
+    <h2 class="section-title">Son Oyun Teknikleri</h2>
+    <p class="section-subtitle">Piyonları terfi ettirme, kral aktivasyonu ve temel mat teknikleri</p>
+    <div id="endgame-list"></div>
+  </div>
+
+  <!-- Call to action -->
+  <div style="text-align:center; margin-top:3rem; padding:2rem; background:var(--bg-card); border-radius:var(--radius-lg); border:1px solid var(--border);">
+    <h3 style="font-size:1.4rem; margin-bottom:0.5rem">Bilginizi Test Edin! 🏆</h3>
+    <p style="color:var(--text-secondary);margin-bottom:1.5rem">Öğrendiklerinizi günlük meydan okumalar ile pratik yapın</p>
+    <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap">
+      <a href="challenges.html" class="btn btn-gold">🏆 Günlük Meydan Okuma</a>
+      <a href="index.html" class="btn btn-primary">🎮 Bilgisayara Karşı Oyna</a>
+    </div>
+  </div>
+
+</main>
+
+<script src="js/chess-engine.js"></script>
+<script src="js/board.js"></script>
+<script src="js/learn.js"></script>
+</body>
+</html>

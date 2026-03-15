@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ChessVerse — Satranç Oyna</title>
+  <meta name="description" content="Modern satranç sitesi — bilgisayara karşı oyna, öğren ve günlük meydan okumalar">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/chess.css">
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="index.html" class="nav-logo">
+    <span class="logo-icon">♟</span>
+    <span>ChessVerse</span>
+  </a>
+  <div class="nav-links">
+    <a href="index.html" class="nav-link active"><span class="icon">🎮</span><span>Oyna</span></a>
+    <a href="learn.html" class="nav-link"><span class="icon">📚</span><span>Öğren</span></a>
+    <a href="challenges.html" class="nav-link"><span class="icon">🏆</span><span>Meydan Okuma</span></a>
+  </div>
+</nav>
+
+<!-- GAME LAYOUT -->
+<main class="game-container">
+
+  <!-- LEFT: Board Area -->
+  <div class="game-left">
+    <!-- Black Player Panel -->
+    <div class="player-panel" id="panel-black">
+      <div class="player-avatar" style="font-size:1.6rem">🤖</div>
+      <div class="player-info">
+        <div class="player-name" id="black-name">Bilgisayar</div>
+        <div class="player-captured" id="captured-by-black"></div>
+      </div>
+      <div class="player-timer" id="timer-black">10:00</div>
+    </div>
+
+    <!-- Chess Board -->
+    <div class="board-wrapper">
+      <div id="chess-board"></div>
+    </div>
+
+    <!-- Status -->
+    <div id="game-status">Yeni oyun başlatmak için hazır...</div>
+
+    <!-- White Player Panel -->
+    <div class="player-panel" id="panel-white">
+      <div class="player-avatar" style="font-size:1.6rem">👤</div>
+      <div class="player-info">
+        <div class="player-name" id="white-name">Sen (Beyaz)</div>
+        <div class="player-captured" id="captured-by-white"></div>
+      </div>
+      <div class="player-timer" id="timer-white">10:00</div>
+    </div>
+  </div>
+
+  <!-- RIGHT: Sidebar -->
+  <div class="game-right">
+
+    <!-- Difficulty -->
+    <div class="sidebar-card">
+      <div class="sidebar-card-header">⚙️ Oyun Ayarları</div>
+      <div class="difficulty-row">
+        <span>Zorluk:</span>
+        <span id="current-difficulty">Orta 🧠</span>
+      </div>
+    </div>
+
+    <!-- Controls -->
+    <div class="sidebar-card">
+      <div class="sidebar-card-header">🎮 Kontroller</div>
+      <div class="controls-grid">
+        <button class="btn btn-primary" id="btn-new-game">🆕 Yeni Oyun</button>
+        <button class="btn btn-secondary" id="btn-undo">↩ Geri Al</button>
+        <button class="btn btn-secondary" id="btn-flip">🔄 Çevir</button>
+        <button class="btn btn-danger" id="btn-resign">🏳 Teslim Ol</button>
+      </div>
+    </div>
+
+    <!-- Move History -->
+    <div class="sidebar-card" style="flex: 1">
+      <div class="sidebar-card-header">📋 Hamle Geçmişi</div>
+      <div id="move-history"></div>
+    </div>
+
+    <!-- Quick Links -->
+    <div class="sidebar-card">
+      <div class="sidebar-card-header">🔗 Hızlı Erişim</div>
+      <div style="padding: 12px; display: flex; gap: 8px; flex-wrap: wrap;">
+        <a href="learn.html" class="btn btn-secondary" style="flex:1; justify-content:center; font-size:0.8rem">📚 Öğren</a>
+        <a href="challenges.html" class="btn btn-gold" style="flex:1; justify-content:center; font-size:0.8rem">🏆 Meydan Okuma</a>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- NEW GAME MODAL -->
+<div class="modal-overlay" id="new-game-modal" style="display:none">
+  <div class="modal">
+    <h2>♟ Yeni Oyun</h2>
+    <label class="modal-label">Zorluk Seviyesi</label>
+    <select class="modal-select" id="modal-difficulty">
+      <option value="easy">😊 Kolay — Rastgele Hamleler</option>
+      <option value="medium" selected>🧠 Orta — Dengeli Rakip</option>
+      <option value="hard">💀 Zor — Güçlü AI</option>
+    </select>
+    <label class="modal-label">Taş Rengi</label>
+    <select class="modal-select" id="modal-color">
+      <option value="w">⬜ Beyaz (Önce Sen Oynarsın)</option>
+      <option value="b">⬛ Siyah (AI Önce Oynar)</option>
+    </select>
+    <div class="modal-actions">
+      <button class="btn btn-primary" id="modal-start">🚀 Başla!</button>
+      <button class="btn btn-secondary" id="modal-cancel">İptal</button>
+    </div>
+  </div>
+</div>
+
+<!-- PROMOTION MODAL -->
+<div class="modal-overlay" id="promotion-modal" style="display:none">
+  <div class="modal">
+    <h2>♛ Taş Yükseltme</h2>
+    <p style="text-align:center; color: var(--text-secondary); margin-bottom:0.5rem">
+      Piyon zirveye ulaştı! Hangi taşa yükseltmek istersiniz?
+    </p>
+    <div class="promo-pieces">
+      <button class="promo-piece" data-piece="Q" title="Vezir"></button>
+      <button class="promo-piece" data-piece="R" title="Kale"></button>
+      <button class="promo-piece" data-piece="B" title="Fil"></button>
+      <button class="promo-piece" data-piece="N" title="At"></button>
+    </div>
+  </div>
+</div>
+
+<!-- GAME OVER MODAL -->
+<div class="modal-overlay" id="gameover-modal" style="display:none">
+  <div class="modal">
+    <h2>Oyun Bitti!</h2>
+    <div class="gameover-result">🏁</div>
+    <p id="gameover-msg" style="text-align:center; font-size:1.2rem; font-weight:600; margin-bottom:1.5rem; color: var(--accent-light)"></p>
+    <div class="modal-actions">
+      <button class="btn btn-primary" id="gameover-newgame">🆕 Yeni Oyun</button>
+      <a href="challenges.html" class="btn btn-gold" style="justify-content:center">🏆 Meydan Oku</a>
+    </div>
+  </div>
+</div>
+
+<script src="js/chess-engine.js"></script>
+<script src="js/ai.js"></script>
+<script src="js/board.js"></script>
+<script src="js/game.js"></script>
+</body>
+</html>

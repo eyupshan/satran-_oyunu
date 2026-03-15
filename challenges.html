@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ChessVerse — Günlük Meydan Okuma</title>
+  <meta name="description" content="Her gün yeni satranç bulmacaları çözün, taktik becerilerinizi geliştirin">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/chess.css">
+  <style>
+    .challenges-page { max-width: 1100px; margin: 0 auto; padding: 1.5rem 2rem; }
+
+    .challenges-hero {
+      background: linear-gradient(135deg, rgba(251,191,36,0.12), rgba(245,158,11,0.08));
+      border: 1px solid rgba(251,191,36,0.3);
+      border-radius: var(--radius-lg); padding: 2.5rem 2rem;
+      text-align: center; margin-bottom: 2rem;
+    }
+    .challenges-hero h1 { font-family: 'Playfair Display', serif; font-size: 2.2rem; margin-bottom: 0.5rem; }
+    .challenges-hero p { color: var(--text-secondary); }
+
+    .challenges-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; align-items: start; }
+
+    /* Puzzle list */
+    #puzzle-list { display: flex; flex-direction: column; gap: 1rem; }
+    .puzzle-card {
+      cursor: default; transition: border-color 0.2s;
+    }
+    .puzzle-card-top { display: flex; gap: 12px; align-items: flex-start; margin-bottom: 8px; }
+    .puzzle-num { font-size: 1.8rem; line-height: 1; }
+    .today-puzzle {
+      border-color: rgba(251,191,36,0.5) !important;
+      background: rgba(251,191,36,0.05) !important;
+    }
+    .solved-puzzle { opacity: 0.7; }
+
+    /* Puzzle panel */
+    #puzzle-panel {
+      position: sticky; top: 80px;
+    }
+    #puzzle-panel.hidden { display: none; }
+    .puzzle-board-card {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: var(--radius-md); overflow: hidden;
+    }
+    .puzzle-board-header {
+      padding: 12px 16px; background: var(--bg-surface);
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    #puzzle-board-area { display: flex; justify-content: center; padding: 16px; }
+    #puzzle-board {
+      display: grid; grid-template-columns: repeat(8,1fr); grid-template-rows: repeat(8,1fr);
+      width: 320px; height: 320px;
+      border: 3px solid var(--accent); border-radius: 4px; overflow: hidden;
+      box-shadow: var(--shadow-lg), 0 0 30px rgba(124,77,255,0.3);
+    }
+    .puzzle-info-panel { padding: 12px 16px; border-top: 1px solid var(--border); }
+    #puzzle-title-display { font-size: 1.1rem; font-weight: 700; color: var(--gold); }
+    #puzzle-desc-display { color: var(--text-secondary); font-size: 0.88rem; margin: 6px 0; }
+
+    .puzzle-feedback {
+      padding: 10px 14px; border-radius: var(--radius-sm);
+      font-weight: 600; font-size: 0.9rem; margin: 8px 0;
+      min-height: 40px; display: flex; align-items: center;
+    }
+    .feedback-success { background: rgba(16,185,129,0.15); color: var(--success); }
+    .feedback-error { background: rgba(239,68,68,0.15); color: var(--danger); animation: shake 0.4s ease; }
+
+    @keyframes shake {
+      0%,100% { transform: translateX(0); }
+      25% { transform: translateX(-6px); }
+      75% { transform: translateX(6px); }
+    }
+
+    .puzzle-hint-area { margin-top: 8px; }
+    .hidden { display: none !important; }
+    #puzzle-hint-text, #puzzle-solution-text {
+      background: rgba(124,77,255,0.1); border-radius: var(--radius-sm);
+      padding: 8px 12px; font-size: 0.88rem; color: var(--accent-light);
+      margin-top: 8px;
+    }
+    #puzzle-solution-text { background: rgba(16,185,129,0.1); color: var(--success); }
+
+    .puzzle-controls { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; margin-top: 10px; }
+    .puzzle-controls .btn { font-size: 0.82rem; padding: 8px 10px; justify-content: center; }
+
+    /* Fireworks */
+    #fireworks-container {
+      position: fixed; inset: 0; z-index: 9999; pointer-events: none; display: none;
+    }
+    .spark {
+      position: absolute; width: 8px; height: 8px; border-radius: 50%;
+      animation: sparkle 1s ease forwards;
+    }
+    @keyframes sparkle {
+      0% { transform: scale(0) translate(0,0); opacity: 1; }
+      100% { transform: scale(1) translate(calc(var(--tx,50px)), calc(var(--ty,-80px))); opacity: 0; }
+    }
+
+    /* Progress bar */
+    .progress-section { margin: 1.5rem 0 0.5rem; }
+    .progress-bar-bg {
+      height: 8px; background: var(--bg-surface); border-radius: 4px; overflow: hidden;
+    }
+    .progress-bar-fill {
+      height: 100%; border-radius: 4px; transition: width 0.5s ease;
+      background: linear-gradient(90deg, var(--accent), var(--gold));
+    }
+    .progress-text { font-size: 0.85rem; color: var(--text-secondary); margin-top: 6px; }
+
+    @media (max-width: 900px) {
+      .challenges-layout { grid-template-columns: 1fr; }
+      #puzzle-panel { position: static; }
+      #puzzle-board { width: 260px; height: 260px; }
+    }
+    @media (max-width: 480px) {
+      #puzzle-board { width: 220px; height: 220px; }
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="nav-logo"><span class="logo-icon">♟</span><span>ChessVerse</span></a>
+  <div class="nav-links">
+    <a href="index.html" class="nav-link"><span class="icon">🎮</span><span>Oyna</span></a>
+    <a href="learn.html" class="nav-link"><span class="icon">📚</span><span>Öğren</span></a>
+    <a href="challenges.html" class="nav-link active"><span class="icon">🏆</span><span>Meydan Okuma</span></a>
+  </div>
+</nav>
+
+<!-- Fireworks -->
+<div id="fireworks-container"></div>
+
+<main class="challenges-page">
+
+  <!-- Hero -->
+  <div class="challenges-hero">
+    <h1>🏆 Günlük Meydan Okumalar</h1>
+    <p>Her gün yeni bir bulmaca — taktik becerilerinizi geliştirin ve zirveye ulaşın!</p>
+  </div>
+
+  <!-- Progress -->
+  <div class="progress-section">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+      <span style="font-weight:600">Toplam İlerleme</span>
+      <span id="progress-count" style="color:var(--accent-light)">0 / 7</span>
+    </div>
+    <div class="progress-bar-bg">
+      <div class="progress-bar-fill" id="progress-fill" style="width:0%"></div>
+    </div>
+    <div class="progress-text">Haftadaki bulmacaları tamamlayın ve ustalaşın!</div>
+  </div>
+
+  <div class="challenges-layout">
+
+    <!-- Puzzle List -->
+    <div>
+      <h2 class="section-title" style="font-size:1.4rem;margin-bottom:1rem">📋 Bulmacalar</h2>
+      <div id="puzzle-list">
+        <div style="text-align:center;color:var(--text-muted);padding:2rem">
+          Yükleniyor...
+        </div>
+      </div>
+    </div>
+
+    <!-- Puzzle Board Panel -->
+    <div id="puzzle-panel" class="hidden">
+      <div class="puzzle-board-card">
+        <div class="puzzle-board-header">
+          <div>
+            <div id="puzzle-title-display" style="font-size:1rem;font-weight:700;color:var(--gold)">🎯 Bulmaca</div>
+            <span class="badge badge-purple" id="puzzle-difficulty-display" style="margin-top:4px;display:inline-block">Kolay</span>
+          </div>
+          <a href="index.html" class="btn btn-secondary" style="font-size:0.8rem;padding:6px 10px">🎮 Oyuna Dön</a>
+        </div>
+
+        <!-- Board -->
+        <div id="puzzle-board-area">
+          <div id="puzzle-board"></div>
+        </div>
+
+        <!-- Info -->
+        <div class="puzzle-info-panel">
+          <p id="puzzle-desc-display" style="color:var(--text-secondary);font-size:0.88rem;margin-bottom:8px"></p>
+          <div id="puzzle-feedback" class="puzzle-feedback"></div>
+
+          <div class="puzzle-hint-area">
+            <div id="puzzle-hint-text" class="hidden"></div>
+            <div id="puzzle-solution-text" class="hidden"></div>
+          </div>
+
+          <div class="puzzle-controls">
+            <button class="btn btn-secondary" id="btn-hint">💡 İpucu</button>
+            <button class="btn btn-secondary" id="btn-reset-puzzle">🔄 Sıfırla</button>
+            <button class="btn btn-danger" id="btn-solution">✓ Çözüm</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Next puzzle hint -->
+      <div style="margin-top:1rem;text-align:center">
+        <p style="color:var(--text-muted);font-size:0.85rem">Tüm bulmacaları çözdükten sonra</p>
+        <a href="index.html" class="btn btn-primary" style="margin-top:8px;justify-content:center">
+          🎮 Tam Oyun Oyna
+        </a>
+      </div>
+    </div>
+
+    <!-- Placeholder when no puzzle selected -->
+    <div id="puzzle-placeholder" style="text-align:center;padding:3rem;color:var(--text-muted)">
+      <div style="font-size:4rem;margin-bottom:1rem">♟</div>
+      <h3 style="color:var(--text-secondary)">Bir bulmaca seçin</h3>
+      <p style="margin-top:8px;font-size:0.9rem">Soldaki listeden bir bulmacaya tıklayın ve çözmeye başlayın!</p>
+    </div>
+
+  </div>
+
+  <!-- Tips -->
+  <div style="margin-top:3rem">
+    <h2 class="section-title" style="font-size:1.4rem;margin-bottom:1rem">💡 Bulmaca Çözme İpuçları</h2>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:1rem">
+      <div class="card">
+        <div style="font-size:1.5rem;margin-bottom:8px">👀</div>
+        <h4 style="color:var(--accent-light);margin-bottom:6px">Her Taşı Kontrol Edin</h4>
+        <p style="color:var(--text-secondary);font-size:0.88rem">Tüm taşlarınızın ve rakibin taşlarının hangi karelere gittiğini düşünün.</p>
+      </div>
+      <div class="card">
+        <div style="font-size:1.5rem;margin-bottom:8px">🎯</div>
+        <h4 style="color:var(--gold);margin-bottom:6px">Şah Vermeyi Düşünün</h4>
+        <p style="color:var(--text-secondary);font-size:0.88rem">Çoğu bulmaca şah vererek başlar. Önce şah seçeneklerini araştırın.</p>
+      </div>
+      <div class="card">
+        <div style="font-size:1.5rem;margin-bottom:8px">🧮</div>
+        <h4 style="color:var(--success);margin-bottom:6px">Birden Fazla Adım</h4>
+        <p style="color:var(--text-secondary);font-size:0.88rem">Rakibin olası yanıtlarını tahmin edin. Sadece ilk hamleyi değil, devamını da planlayın.</p>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<script>
+  function updateProgressBar() {
+    let solved = 0;
+    try { const p = JSON.parse(localStorage.getItem('chess-challenge-progress') || '{}'); solved = Object.values(p).filter(v=>v.solved).length; } catch{}
+    document.getElementById('progress-count').textContent = solved + ' / 7';
+    document.getElementById('progress-fill').style.width = (solved/7*100) + '%';
+  }
+  document.addEventListener('DOMContentLoaded', updateProgressBar);
+
+  // Hide/show placeholder when puzzle is selected
+  const origLoadPuzzle = window.__origLoadPuzzle;
+  document.addEventListener('puzzle-loaded', () => {
+    document.getElementById('puzzle-placeholder').style.display = 'none';
+    document.getElementById('puzzle-panel').classList.remove('hidden');
+  });
+</script>
+
+<script src="js/chess-engine.js"></script>
+<script src="js/ai.js"></script>
+<script src="js/board.js"></script>
+<script src="js/challenges.js"></script>
+<script>
+  // Patch to show panel when puzzle loaded
+  const origLoad = ChallengesManager.prototype.loadPuzzle;
+  ChallengesManager.prototype.loadPuzzle = function(id) {
+    origLoad.call(this, id);
+    document.getElementById('puzzle-placeholder').style.display = 'none';
+    document.getElementById('puzzle-panel').classList.remove('hidden');
+    updateProgressBar();
+  };
+</script>
+</body>
+</html>
